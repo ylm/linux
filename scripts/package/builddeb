@@ -129,8 +129,9 @@ parisc|mips|powerpc)
 	installed_dtb_path="boot/vmlinuz-$version.dtb"
 	;;
 *)
-	installed_image_path="boot/vmlinuz-$version"
-	installed_dtb_path="boot/vmlinuz-$version.dtb"
+	# XXX: This is a glorious hack which should be fixed
+	installed_image_path="usr/share/linux-novena/vmlinuz-$version"
+	installed_dtb_path="usr/share/linux-novena/vmlinuz-$version.dtb"
 esac
 
 BUILD_DEBUG=$(if_enabled_echo CONFIG_DEBUG_INFO Yes)
@@ -140,12 +141,21 @@ rm -rf "$tmpdir" "$dbg_dir" debian/files
 mkdir -m 755 -p "$tmpdir/DEBIAN"
 mkdir -p "$tmpdir/lib" "$tmpdir/boot"
 
+if [ ! -z $KBUILD_DESTDIR ]; then
+	installed_image_path="${KBUILD_DESTDIR}/vmlinuz-$version"
+	installed_dtb_path="${KBUILD_DESTDIR}/vmlinuz-$version.dtb"
+	mkdir -p "${tmpdir}/${KBUILD_DESTDIR}"
+fi
+
 # Install the kernel
 if [ "$ARCH" = "um" ] ; then
 	mkdir -p "$tmpdir/usr/lib/uml/modules/$version" "$tmpdir/usr/bin" "$tmpdir/usr/share/doc/$packagename"
 	cp System.map "$tmpdir/usr/lib/uml/modules/$version/System.map"
 	cp $KCONFIG_CONFIG "$tmpdir/usr/share/doc/$packagename/config"
 	gzip "$tmpdir/usr/share/doc/$packagename/config"
+elif [ ! -z $KBUILD_DESTDIR ]; then
+	cp System.map "$tmpdir/${KBUILD_DESTDIR}/System.map-$version"
+	cp $KCONFIG_CONFIG "$tmpdir/${KBUILD_DESTDIR}/config-$version"
 else
 	cp System.map "$tmpdir/boot/System.map-$version"
 	cp $KCONFIG_CONFIG "$tmpdir/boot/config-$version"
