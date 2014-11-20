@@ -84,6 +84,14 @@ config TEST_POWER
 	help
 	  This driver is used for testing. It's safe to say M here.
 
+config CHARGER_SENOKO
+	tristate "Senoko charger driver"
+	depends on MFD_SENOKO
+	help
+	  Select this to enable Senoko to act as a power regulator.
+	  Senoko contains an AC plug, and can report the state of the
+	  AC adapter, as well as provide power down/reboot features.
+
 config BATTERY_88PM860X
 	tristate "Marvell 88PM860x battery driver"
 	depends on MFD_88PM860X
