@@ -146,6 +146,16 @@ config DRM_MEGACHIPS_STDPXXXX_GE_B850V3_FW
 	  to DP++. This is used with the i.MX6 imx-ldb
 	  driver. You are likely to say N here.
 
+config DRM_IT6251
+	tristate "IT6251 eDP/LVDS bridge"
+	depends on OF
+	select DRM_PANEL
+	select DRM_KMS_HELPER
+	select BACKLIGHT_LCD_SUPPORT
+	select BACKLIGHT_CLASS_DEVICE
+	help
+	  IT6251 eDP-LVDS bridge chip driver.
+
 config DRM_NWL_MIPI_DSI
 	tristate "Northwest Logic MIPI DSI Host controller"
 	depends on DRM
