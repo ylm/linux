@@ -2496,7 +2496,7 @@ static int imx_uart_suspend_noirq(struct device *dev)
 
 	imx_uart_save_context(sport);
 
-	clk_disable(sport->clk_ipg);
+	clk_disable_unprepare(sport->clk_ipg);
 
 	pinctrl_pm_select_sleep_state(dev);
 
@@ -2510,7 +2510,7 @@ static int imx_uart_resume_noirq(struct device *dev)
 
 	pinctrl_pm_select_default_state(dev);
 
-	ret = clk_enable(sport->clk_ipg);
+	ret = clk_prepare_enable(sport->clk_ipg);
 	if (ret)
 		return ret;
 
