@@ -291,6 +291,7 @@
 	phy-handle = <&ethphy>;
 	phy-reset-gpios = <&gpio3 23 GPIO_ACTIVE_LOW>;
 	status = "okay";
+};
 
 &ecspi3 {
 	pinctrl-names = "default";
@@ -328,7 +329,6 @@
 					  0x00000200 0x02040400 0x00000000>;
 		kosagi,weim-cs-mapping = <2>;
 	};
-};
 
 	mdio {
 		#address-cells = <1>;

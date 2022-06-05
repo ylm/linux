@@ -483,7 +483,6 @@ static int es8328_hw_params(struct snd_pcm_substream *substream,
 	int reg;
 	int wl;
 	int ratio;
-	int clk_rate;
 
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
 		reg = ES8328_DACCONTROL2;
@@ -492,12 +491,8 @@ static int es8328_hw_params(struct snd_pcm_substream *substream,
 
 	if (es8328->master) {
 		if (!es8328->sysclk_constraints) {
-			clk_rate = clk_get_rate(es8328->clk);
-			es8328_set_sysclk(dai, ES8328_MCLK, clk_rate, 0);
-			if (!es8328->sysclk_constraints) {
-				dev_err(codec->dev, "No MCLK configured\n");
+				dev_err(component->dev, "No MCLK configured\n");
 				return -EINVAL;
-			}
 		}
 
 		for (i = 0; i < es8328->sysclk_constraints->count; i++)

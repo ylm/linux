@@ -197,8 +197,9 @@ static void imx6q_cpufreq_ready(struct cpufreq_policy *policy)
 		return;
 
 	if (of_find_property(np, "#cooling-cells", NULL)) {
-		cdev = of_cpufreq_cooling_register(np,
-							 policy->related_cpus);
+		cdev = of_cpufreq_cooling_register(policy);
+		//cdev = of_cpufreq_cooling_register(np,
+							 //policy->related_cpus);
 
 		if (IS_ERR(cdev)) {
 			dev_err(cpu_dev,
@@ -228,7 +229,7 @@ static struct cpufreq_driver imx6q_cpufreq_driver = {
 	.target_index = imx6q_set_target,
 	.get = cpufreq_generic_get,
 	.init = imx6q_cpufreq_init,
-	.ready = imx6q_cpufreq_ready,
+	//.ready = imx6q_cpufreq_ready,
 	.register_em = cpufreq_register_em_with_opp,
 	.name = "imx6q-cpufreq",
 	.attr = cpufreq_generic_attr,

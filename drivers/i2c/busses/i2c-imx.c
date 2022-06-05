@@ -538,10 +538,10 @@ static int i2c_imx_trx_complete(struct imx_i2c_struct *i2c_imx, bool atomic)
 
 static int i2c_imx_acked(struct imx_i2c_struct *i2c_imx)
 {
-+	unsigned int sr;
-+
-+	sr = imx_i2c_read_reg(i2c_imx, IMX_I2C_I2SR);
-+	if (sr & I2SR_RXAK) {
+	unsigned int sr;
+
+	sr = imx_i2c_read_reg(i2c_imx, IMX_I2C_I2SR);
+	if (sr & I2SR_RXAK) {
 		dev_dbg(&i2c_imx->adapter.dev, "<%s> No ACK\n", __func__);
 
 		dev_dbg(&i2c_imx->adapter.dev,
@@ -638,7 +638,7 @@ static int i2c_imx_start(struct imx_i2c_struct *i2c_imx, bool atomic)
 		udelay(50);
 
 		/* Wait for bus to be idle */
-		result = i2c_imx_bus_busy(i2c_imx, 0);
+		result = i2c_imx_bus_busy(i2c_imx, 0, true);
 		if (result) {
 			schedule();
 		}
@@ -647,7 +647,7 @@ static int i2c_imx_start(struct imx_i2c_struct *i2c_imx, bool atomic)
 			temp = imx_i2c_read_reg(i2c_imx, IMX_I2C_I2CR);
 			temp |= I2CR_MSTA;
 			imx_i2c_write_reg(temp, i2c_imx, IMX_I2C_I2CR);
-			result = i2c_imx_bus_busy(i2c_imx, 1);
+			result = i2c_imx_bus_busy(i2c_imx, 1, true);
 			if (result) {
 				udelay(50);
 				schedule();

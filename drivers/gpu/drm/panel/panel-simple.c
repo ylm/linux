@@ -2126,7 +2126,6 @@ static const struct drm_display_mode innolux_n133hse_ea1_mode = {
 	.vsync_start = 1080 + 2,
 	.vsync_end = 1080 + 2 + 4,
 	.vtotal = 1080 + 32,
-	.vrefresh = 60,
 };
 
 static const struct panel_desc innolux_n133hse_ea1 = {

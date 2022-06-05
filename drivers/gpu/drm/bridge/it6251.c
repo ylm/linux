@@ -34,12 +34,15 @@
 #include <linux/regulator/consumer.h>
 #include <linux/slab.h>
 #include <linux/workqueue.h>
+#include <drm/drm_atomic_helper.h>
+#include <drm/drm_bridge.h>
+#include <drm/drm_crtc.h>
+#include <drm/drm_crtc_helper.h>
+#include <drm/drm_edid.h>
+#include <drm/drm_of.h>
 #include <drm/drm_panel.h>
-
-#include "drmP.h"
-#include "drm_crtc.h"
-#include "drm_crtc_helper.h"
-#include "drm_atomic_helper.h"
+#include <drm/drm_print.h>
+#include <drm/drm_probe_helper.h>
 
 struct it6251_bridge {
 	struct drm_connector connector;
@@ -251,10 +254,13 @@ static int it6251_is_stable(struct it6251_bridge *it6251)
 	if (it6251->panel) {
 		struct drm_panel *panel = it6251->panel;
 
-		if (panel->connector) {
+		if (panel->connector_type) {
 			struct drm_display_mode *mode;
+			int num_modes;
+			struct drm_connector connector;
 
-			list_for_each_entry(mode, &panel->connector->modes, head) {
+			num_modes = panel->funcs->get_modes(panel, &connector);
+			list_for_each_entry(mode, &connector.modes, head) {
 				if ((mode->hdisplay == hactive)
 				 && (mode->vdisplay == vactive))
 					return 1;
@@ -546,7 +552,7 @@ static int it6251_get_modes(struct drm_connector *connector)
 
         it6251 = connector_to_it6251(connector);
 
-        return drm_panel_get_modes(it6251->panel);
+        return drm_panel_get_modes(it6251->panel, connector);
 }
 
 static struct drm_encoder *it6251_best_encoder(struct drm_connector *connector)
@@ -574,8 +580,14 @@ static void it6251_connector_destroy(struct drm_connector *connector)
         drm_connector_cleanup(connector);
 }
 
+int dummy_dpms(struct drm_connector *connector, int mode)
+{
+	return 0;
+}
+
 static const struct drm_connector_funcs it6251_connector_funcs = {
-        .dpms = drm_atomic_helper_connector_dpms,
+        //.dpms = drm_atomic_helper_connector_dpms,
+        .dpms = dummy_dpms,
         .fill_modes = drm_helper_probe_single_connector_modes,
         .detect = it6251_detect,
         .destroy = it6251_connector_destroy,
@@ -584,7 +596,7 @@ static const struct drm_connector_funcs it6251_connector_funcs = {
         .atomic_destroy_state = drm_atomic_helper_connector_destroy_state,
 };
 
-static int it6251_attach(struct drm_bridge *bridge)
+static int it6251_attach(struct drm_bridge *bridge, enum drm_bridge_attach_flags flags)
 {
 	struct it6251_bridge *it6251 = bridge_to_it6251(bridge);
 	int ret;
@@ -604,10 +616,11 @@ static int it6251_attach(struct drm_bridge *bridge)
 	drm_atomic_helper_connector_reset(&it6251->connector);
 	drm_connector_helper_add(&it6251->connector,
 				 &it6251_connector_helper_funcs);
-	drm_mode_connector_attach_encoder(&it6251->connector, bridge->encoder);
+	drm_connector_attach_encoder(&it6251->connector, bridge->encoder);
 
 	if (it6251->panel)
-		drm_panel_attach(it6251->panel, &it6251->connector);
+		drm_panel_add(it6251->panel); // Unsure if this is the right function
+		//drm_panel_attach(it6251->panel, &it6251->connector);
 	else
 		dev_err(it6251->dev, "no panel found for attach\n");
 
@@ -667,14 +680,10 @@ it6251_probe(struct i2c_client *client, const struct i2c_device_id *id)
 
 	it6251->bridge.funcs = &it6251_bridge_funcs;
 	it6251->bridge.of_node = dev->of_node;
-	ret = drm_bridge_add(&it6251->bridge);
-	if (ret) {
-		DRM_ERROR("Failed to add bridge\n");
-		return ret;
-	}
+	drm_bridge_add(&it6251->bridge);
 
 	/* The LVDS-half of the chip shows up at address 0x5e */
-	it6251->lvds_client = i2c_new_dummy(it6251->client->adapter, LVDS_ADDR);
+	it6251->lvds_client = i2c_new_dummy_device(it6251->client->adapter, LVDS_ADDR);
 	if (!it6251->lvds_client) {
 		ret = -ENODEV;
 		goto err;
